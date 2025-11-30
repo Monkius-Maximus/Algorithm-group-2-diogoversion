@@ -2,3 +2,4 @@
 zombie
 *.o
 obj/
+_codeql_detected_source_root
