@@ -21,6 +21,6 @@ void map_print(const Map *m, const Player *p);
 int map_move_player(Map *m, Player *p, int dx, int dy);
 int map_check_encounter(Map *m, const Player *p); // retorna 1 se encontro zumbi
 void map_place_player(Map *m, Player *p);
-
+void map_move_enemies(Map *m, const Player *p); // IA: move inimigos em direção ao jogador usando BFS
 
 #endif

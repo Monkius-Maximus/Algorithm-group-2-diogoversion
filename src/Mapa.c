@@ -142,3 +142,117 @@ void map_place_player(Map *m, Player *p){
     // Voltar a trás (fallback):
     p->pos_x = 0; p->pos_y = 0;
 }
+
+// Estrutura para a fila do BFS
+typedef struct {
+    int x, y;
+} Pos;
+
+// Função BFS para encontrar o próximo passo em direção ao jogador
+// Retorna 1 se encontrou caminho, 0 se não
+static int bfs_find_next_step(const Map *m, int start_x, int start_y, int goal_x, int goal_y, int *next_x, int *next_y) {
+    // Se já está adjacente ao jogador, não move
+    if (abs(start_x - goal_x) + abs(start_y - goal_y) <= 1) {
+        *next_x = start_x;
+        *next_y = start_y;
+        return 0;
+    }
+    
+    // Matriz de visitados e predecessores
+    int visited[MAP_H][MAP_W] = {0};
+    int pred_x[MAP_H][MAP_W];
+    int pred_y[MAP_H][MAP_W];
+    
+    // Inicializa predecessores
+    for (int y = 0; y < MAP_H; y++) {
+        for (int x = 0; x < MAP_W; x++) {
+            pred_x[y][x] = -1;
+            pred_y[y][x] = -1;
+        }
+    }
+    
+    // Fila para BFS
+    Pos queue[MAP_W * MAP_H];
+    int front = 0, back = 0;
+    
+    // Adiciona posição inicial
+    queue[back].x = start_x;
+    queue[back].y = start_y;
+    back++;
+    visited[start_y][start_x] = 1;
+    
+    // Direções: cima, baixo, esquerda, direita
+    int dx[] = {0, 0, -1, 1};
+    int dy[] = {-1, 1, 0, 0};
+    
+    while (front < back) {
+        Pos current = queue[front++];
+        
+        // Chegou ao objetivo
+        if (current.x == goal_x && current.y == goal_y) {
+            // Reconstrói o caminho para encontrar o primeiro passo
+            int cx = goal_x, cy = goal_y;
+            while (pred_x[cy][cx] != start_x || pred_y[cy][cx] != start_y) {
+                int px = pred_x[cy][cx];
+                int py = pred_y[cy][cx];
+                cx = px;
+                cy = py;
+            }
+            *next_x = cx;
+            *next_y = cy;
+            return 1;
+        }
+        
+        // Explora vizinhos
+        for (int i = 0; i < 4; i++) {
+            int nx = current.x + dx[i];
+            int ny = current.y + dy[i];
+            
+            // Verifica limites
+            if (nx < 0 || nx >= MAP_W || ny < 0 || ny >= MAP_H) continue;
+            
+            // Verifica se já foi visitado
+            if (visited[ny][nx]) continue;
+            
+            // Verifica se é passável (vazio, item ou posição do jogador)
+            if (m->grid[ny][nx] == TILE_WALL || m->grid[ny][nx] == TILE_ZOMBIE) continue;
+            
+            visited[ny][nx] = 1;
+            pred_x[ny][nx] = current.x;
+            pred_y[ny][nx] = current.y;
+            queue[back].x = nx;
+            queue[back].y = ny;
+            back++;
+        }
+    }
+    
+    // Não encontrou caminho
+    *next_x = start_x;
+    *next_y = start_y;
+    return 0;
+}
+
+// Move todos os inimigos ativos em direção ao jogador usando BFS
+void map_move_enemies(Map *m, const Player *p) {
+    for (int i = 0; i < m->num_inimigos; i++) {
+        Inimigo *inimigo = &m->inimigos[i];
+        
+        // Ignora inimigos inativos (derrotados)
+        if (!inimigo->ativo) continue;
+        
+        int next_x, next_y;
+        
+        // Usa BFS para encontrar o próximo passo
+        if (bfs_find_next_step(m, inimigo->pos_x, inimigo->pos_y, p->pos_x, p->pos_y, &next_x, &next_y)) {
+            // Atualiza o mapa: remove o Z da posição antiga
+            m->grid[inimigo->pos_y][inimigo->pos_x] = TILE_EMPTY;
+            
+            // Move o inimigo
+            inimigo->pos_x = next_x;
+            inimigo->pos_y = next_y;
+            
+            // Coloca o Z na nova posição
+            m->grid[next_y][next_x] = TILE_ZOMBIE;
+        }
+    }
+}

@@ -227,6 +227,8 @@ int main()
                                 printf("Você fugiu do encontro e voltou para sua posição anterior.\n");
                                 jogador.pos_x = prev_x; // Restaura a posição X anterior
                                 jogador.pos_y = prev_y; // Restaura a posição Y anterior
+                                // Após fugir, os zumbis se movem em direção ao jogador
+                                map_move_enemies(&mapa, &jogador);
                                 pause_console();
                             }
                         }
@@ -247,6 +249,8 @@ int main()
                             mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_EMPTY;
                             pause_console();
                         }
+                        // Após movimento bem sucedido sem encontro, zumbis se movem
+                        map_move_enemies(&mapa, &jogador);
                     }
                 }
                 else
@@ -372,6 +376,8 @@ int main()
                                     printf("Você fugiu do encontro e voltou para sua posição anterior.\n");
                                     jogador.pos_x = prev_x;
                                     jogador.pos_y = prev_y;
+                                    // Após fugir, os zumbis se movem em direção ao jogador
+                                    map_move_enemies(&mapa, &jogador);
                                     pause_console();
                                 }
                             }
@@ -391,6 +397,8 @@ int main()
                                 mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_EMPTY;
                                 pause_console();
                             }
+                            // Após movimento bem sucedido sem encontro, zumbis se movem
+                            map_move_enemies(&mapa, &jogador);
                         }
                     }
                     else
