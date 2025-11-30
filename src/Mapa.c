@@ -244,15 +244,18 @@ void map_move_enemies(Map *m, const Player *p) {
         
         // Usa BFS para encontrar o próximo passo
         if (bfs_find_next_step(m, inimigo->pos_x, inimigo->pos_y, p->pos_x, p->pos_y, &next_x, &next_y)) {
-            // Atualiza o mapa: remove o Z da posição antiga
-            m->grid[inimigo->pos_y][inimigo->pos_x] = TILE_EMPTY;
-            
-            // Move o inimigo
-            inimigo->pos_x = next_x;
-            inimigo->pos_y = next_y;
-            
-            // Coloca o Z na nova posição
-            m->grid[next_y][next_x] = TILE_ZOMBIE;
+            // Verifica se a posição destino ainda está disponível (evita colisão entre zumbis)
+            if (m->grid[next_y][next_x] == TILE_EMPTY || m->grid[next_y][next_x] == TILE_ITEM) {
+                // Atualiza o mapa: remove o Z da posição antiga
+                m->grid[inimigo->pos_y][inimigo->pos_x] = TILE_EMPTY;
+                
+                // Move o inimigo
+                inimigo->pos_x = next_x;
+                inimigo->pos_y = next_y;
+                
+                // Coloca o Z na nova posição
+                m->grid[next_y][next_x] = TILE_ZOMBIE;
+            }
         }
     }
 }
